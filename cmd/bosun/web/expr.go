@@ -29,7 +29,7 @@ func Expr(t miniprofiler.Timer, w http.ResponseWriter, r *http.Request) (interfa
 	if err != nil {
 		return nil, err
 	}
-	res, queries, err := e.Execute(schedule.Conf.TSDBCacheContext(), schedule.Conf.GraphiteContext(), schedule.Conf.LogstashElasticHost, t, now, 0, false, schedule.Search, nil)
+	res, queries, err := e.Execute(schedule.Conf.TSDBCacheContext(), schedule.Conf.GraphiteContext(), schedule.Conf.LogstashElasticHost, t, now, 0, false, schedule.Search, nil, nil)
 	if err != nil {
 		return nil, err
 	}

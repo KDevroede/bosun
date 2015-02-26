@@ -49,6 +49,20 @@ func (rh *RunHistory) AtTime(t time.Time) *RunHistory {
 	return &n
 }
 
+// Returns all tagsets for the given alert name that have a status of Unkown or are Unevaluated.
+// Implements expr.AlertStatusProvider
+func (rh *RunHistory) GetUnknownTagSets(alert string) []opentsdb.TagSet {
+	tags := []opentsdb.TagSet{}
+	for k, v := range rh.Events {
+		if v.Unevaluated || v.Status == StUnknown {
+			if k.Name() == alert {
+				tags = append(tags, k.Group())
+			}
+		}
+	}
+	return tags
+}
+
 func (s *Schedule) NewRunHistory(start time.Time) *RunHistory {
 	return &RunHistory{
 		Start:           start,
@@ -267,7 +281,7 @@ func (s *Schedule) executeExpr(T miniprofiler.Timer, rh *RunHistory, a *conf.Ale
 	if e == nil {
 		return nil, nil
 	}
-	results, _, err := e.Execute(rh.Context, rh.GraphiteContext, s.Conf.LogstashElasticHost, T, rh.Start, 0, a.UnjoinedOK, s.Search, s.Conf.AlertSquelched(a))
+	results, _, err := e.Execute(rh.Context, rh.GraphiteContext, s.Conf.LogstashElasticHost, T, rh.Start, 0, a.UnjoinedOK, s.Search, s.Conf.AlertSquelched(a), rh)
 	if err != nil {
 		ak := expr.NewAlertKey(a.Name, nil)
 		state := s.Status(ak)
