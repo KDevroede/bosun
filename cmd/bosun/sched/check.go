@@ -226,7 +226,7 @@ func (s *Schedule) CheckUnknown() {
 			if time.Since(st.Touched) < t {
 				continue
 			}
-			r.Events[ak] = &Event{Status: StUnknown}
+			r.Events[ak] = &Event{Status: StUnknown, Unevaluated: st.Unevaluated}
 		}
 		s.Unlock()
 		s.RunHistory(r)
@@ -237,7 +237,6 @@ func (s *Schedule) CheckAlert(T miniprofiler.Timer, r *RunHistory, a *conf.Alert
 	log.Printf("check alert %v start", a.Name)
 	start := time.Now()
 	var warns, crits expr.AlertKeys
-	dependCount := 0
 	ignore := map[expr.AlertKey]bool{}
 	d, err := s.executeExpr(T, r, a, a.Depends)
 	dependencyResults := filterDependencyResults(d)
@@ -254,7 +253,7 @@ func (s *Schedule) CheckAlert(T miniprofiler.Timer, r *RunHistory, a *conf.Alert
 		}
 	}
 	collect.Put("check.duration", opentsdb.TagSet{"name": a.Name}, time.Since(start).Seconds())
-	log.Printf("check alert %v done (%s): %v crits, %v warns, %v ignored because of dependencies.", a.Name, time.Since(start), len(crits), len(warns), dependCount)
+	log.Printf("check alert %v done (%s): %v crits, %v warns, %v ignored because of dependencies.", a.Name, time.Since(start), len(crits), len(warns), len(dependencyResults))
 }
 
 func filterDependencyResults(results *expr.Results) expr.ResultSlice {
